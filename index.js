@@ -5,7 +5,19 @@ const cors = require("cors");
 const app = express();
 const port = 3001;
 const FormRoutes = require("./Routes/form");
+app.use(cors());
+/////////////////// FILE UPLOAD CODE ////////////////////////
 const multer = require("multer");
+const path = require("path");
+
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
+    cb(null, true);
+  } else {
+    cb(new Error('Not allowed'), false);
+  }
+};
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "Images");
@@ -16,15 +28,26 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 1024 * 1024 * 5,
+  },
+  fileFilter: fileFilter
+});
+
+app.get("/upload", (req, res) => {
+  res.render("upload");
+});
 
 app.post("/upload", upload.single("image"), (req, res) => {
-  res.send("Hey");
+  res.send("Image uploaded");
 });
+/////////////////////////////////////////////////////////////
 
 // Middlewares
 // Enabling CORS
-app.use(cors());
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
